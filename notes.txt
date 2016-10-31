@@ -1,0 +1,18 @@
+Controls
+=======
+- Heading
+- Throttle
+- Preiscope zoom
+
+Instrumentation
+======
+- Map
+- Compass
+- Fuel
+- Battery capacity
+- Depth
+- Periscope heading
+- 
+
+1136x640
+/4 284/160
