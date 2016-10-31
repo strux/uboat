@@ -28,15 +28,15 @@ BasicGame.Game.prototype = {
     preload: function () {
         this.load.tilemap('level1', 'assets/tilemaps/map-large.json', null, Phaser.Tilemap.TILED_JSON);
         this.load.image('gameTiles', 'assets/images/map-large.png');
-        this.load.image('player', 'assets/images/spritesheet.png');
+        this.load.spritesheet('player', 'assets/images/spritesheet_small.png', 8, 32, 2);
     },
 
 	create: function () {
 
         this.game.physics.startSystem(Phaser.Physics.P2JS);
-        // scale the game 4x
+
         this.game.scale.scaleMode = Phaser.ScaleManager.USER_SCALE;
-        this.game.scale.setUserScale(1, 1);
+        this.game.scale.setUserScale(0.5,0.5);
 
         // enable crisp rendering
         this.game.renderer.renderSession.roundPixels = true;
@@ -52,9 +52,13 @@ BasicGame.Game.prototype = {
         this.backgroundlayer.resizeWorld();
         // this.landMasses = this.game.physics.p2.convertCollisionObjects(this.map, "Object Layer 1", true);
 
-        this.player = this.game.add.sprite(300, 300, 'player');
-        this.player.scale.setTo(2,2);
+        this.player = this.game.add.sprite(200, 200, 'player');
+        this.player.frame = 0;
+        this.player.pivot.setTo(0.5);
+        this.player.scale.setTo(4,4);
         this.player.smoothed = false;
+        // this.player.animations.add('dive', [1,2], 10, false);
+
         this.game.physics.p2.enable(this.player);
         this.player.body.angle = 180;
         this.player.gear = 0;
@@ -77,6 +81,9 @@ BasicGame.Game.prototype = {
                 if (player.gear > -5) {
                     player.gear -= 1;
                 }
+            }
+            if (event.code === 'KeyD') {
+                player.frame = 1 - player.frame;
             }
             console.log("Current gear: ", player.gear);
         };
