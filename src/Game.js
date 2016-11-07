@@ -35,8 +35,10 @@ BasicGame.Game.prototype = {
 
         this.game.physics.startSystem(Phaser.Physics.P2JS);
 
+        /* 
         this.game.scale.scaleMode = Phaser.ScaleManager.USER_SCALE;
-        this.game.scale.setUserScale(0.5,0.5);
+        this.game.scale.setUserScale(4, 4);
+        */
 
         // enable crisp rendering
         this.game.renderer.renderSession.roundPixels = true;
@@ -48,24 +50,33 @@ BasicGame.Game.prototype = {
         this.map.addTilesetImage('map-large', 'gameTiles');
 
         // create layer
-        this.backgroundlayer = this.map.createLayer('Tile Layer 1');
-        this.backgroundlayer.resizeWorld();
+        this.backgroundLayer = this.map.createLayer('Tile Layer 1');
+        this.backgroundLayer.resizeWorld();
         // this.landMasses = this.game.physics.p2.convertCollisionObjects(this.map, "Object Layer 1", true);
 
-        this.player = this.game.add.sprite(200, 200, 'player');
+
+        this.player = this.game.add.sprite(this.game.world.centerX, this.game.world.height - 100, 'player');
         this.player.frame = 0;
-        this.player.pivot.setTo(0.5);
-        this.player.scale.setTo(4,4);
+        // this.player.scale.setTo(4,4);
+        this.player.anchor.setTo(0.5);
         this.player.smoothed = false;
-        // this.player.animations.add('dive', [1,2], 10, false);
+        this.player.animations.add('dive', [1,2], 10, false);
+
+/*
+        this.backgroundLayer.anchor.setTo(0.5, 0.5);
+        this.backgroundLayer.fixedToCamera = false;
+        this.backgroundLayer.scrollFactorX = 0;
+        this.backgroundLayer.scrollFactorY = 0;
+        this.backgroundLayer.x = this.player.x;
+        this.backgroundLayer.y = this.player.y;
+*/
 
         this.game.physics.p2.enable(this.player);
-        this.player.body.angle = 180;
         this.player.gear = 0;
 
         this.game.camera.follow(this.player); 
 
-        this.game.physics.p2.setBoundsToWorld(true, true, true, true, false);
+        // this.game.physics.p2.setBoundsToWorld(true, true, true, true, false);
 
         this.cursors = this.game.input.keyboard.createCursorKeys();
 
@@ -94,29 +105,22 @@ BasicGame.Game.prototype = {
         var speed = Math.abs(this.player.gear * 10),
             turnSpeed = this.player.gear * 2;
 
-        if (this.player.body.velocity.x !== 0 && this.player.body.velocity.y !== 0) {
 
             if (this.cursors.left.isDown)
             {
-                this.player.body.rotateLeft(turnSpeed);
+                // this.player.body.rotateLeft(turnSpeed);
+                this.backgroundLayer.rotation += 0.01;
             }
             else if (this.cursors.right.isDown)
             {
-                this.player.body.rotateRight(turnSpeed);
+                // this.player.body.rotateRight(turnSpeed);
+                this.backgroundLayer.rotation -= 0.01;
             }
             else
             {
                 this.player.body.setZeroRotation();
             }
 
-        }
-
-        if (this.player.gear > 0) {
-            this.player.body.moveForward(speed);
-        }
-        if (this.player.gear < 0) {
-            this.player.body.moveBackward(speed);
-        }
 	},
 
 	quitGame: function (pointer) {

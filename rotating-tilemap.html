@@ -1,0 +1,92 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<title>Phaser Full Screen Mobile Example</title>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="chrome=1, IE=9">
+	<meta name="format-detection" content="telephone=no">
+	<meta name="HandheldFriendly" content="true" />
+	<meta name="robots" content="noindex,nofollow" />
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta name="apple-mobile-web-app-status-bar-style" content="black" />
+	<meta name="apple-mobile-web-app-title" content="Phaser App">
+	<meta name="viewport" content="initial-scale=1 maximum-scale=1 user-scalable=0 minimal-ui shrink-to-fit=no" />
+	<script src="js/phaser.js"></script>
+</head>
+<body>
+
+	<div id="game"></div>
+
+<script type="text/javascript">
+
+(function () {
+
+    var game = new Phaser.Game(640, 640, Phaser.AUTO, '', { preload: preload, create: create, update: update});
+    var world, cursors, player, level1, npc;
+
+    function preload() {
+        game.load.spritesheet('boats', 'assets/images/game-mock.png', 9, 16);
+        game.load.image('ocean', 'assets/images/ocean-tile.png', 32, 32);
+        game.load.tilemap('level1', 'assets/tilemaps/map-large.json', null, Phaser.Tilemap.TILED_JSON);
+        game.load.image('gameTiles', 'assets/images/map-large.png');
+    }
+
+    function create() {
+        map = this.game.add.tilemap('level1');
+        map.addTilesetImage('map-large', 'gameTiles');
+        level1 = map.createLayer('Tile Layer 1');
+        level1.resizeWorld();
+
+        //  Make the world larger than the actual canvas
+        /*
+        var size = 20;
+        level1 = game.add.group();
+
+        game.world.setBounds(0, 0, size*32, size*32);
+        game.stage.backgroundColor = '#FF0000';
+
+        for (var y=0; y<size; y++) {
+            for (var x=0; x<size; x++) {
+                level1.create(x*32, y*32, 'ocean');
+            }
+        }
+        */
+
+        game.camera.y = game.world.height - 150;
+        player = game.add.sprite(game.world.centerX, game.camera.height - 10, 'boats');
+        player.anchor.setTo(0.5, 0.5);
+
+        // npc = level1.create(game.world.centerX, game.camera.height - 100, 'boats', 2);
+
+        level1.x = player.x;
+        level1.y = player.y;
+        level1.pivot.x = player.x;
+        level1.pivot.y = player.y;
+
+        cursors = game.input.keyboard.createCursorKeys();
+    }
+
+	function update() {
+
+        if (cursors.left.isDown)
+        {
+            level1.rotation += 0.01;
+        }
+        else if (cursors.right.isDown)
+        {
+            level1.rotation -= 0.01;
+        }
+        else if (cursors.up.isDown)
+        {
+            level1.pivot.y -= 10;
+        }
+
+        // npc.x -= 0.5;
+
+	}
+
+ })();
+</script>
+
+</body>
+</html>

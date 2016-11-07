@@ -1,0 +1,139 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<title>Phaser Full Screen Mobile Example</title>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="chrome=1, IE=9">
+	<meta name="format-detection" content="telephone=no">
+	<meta name="HandheldFriendly" content="true" />
+	<meta name="robots" content="noindex,nofollow" />
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta name="apple-mobile-web-app-status-bar-style" content="black" />
+	<meta name="apple-mobile-web-app-title" content="Phaser App">
+	<meta name="viewport" content="initial-scale=1 maximum-scale=1 user-scalable=0 minimal-ui shrink-to-fit=no" />
+	<script src="js/phaser.js"></script>
+</head>
+<body>
+
+	<div id="game"></div>
+
+<script type="text/javascript">
+
+(function () {
+
+    var game = new Phaser.Game(640, 640, Phaser.AUTO, '', { preload: preload, create: create, update: update, render: render});
+
+    function preload() {
+        game.load.image('ocean', 'assets/images/ocean-tile.png', 32, 32);
+    }
+
+    function create() {
+
+        renderedX = 0;
+        scale = 0;
+
+        game.physics.startSystem(Phaser.Physics.P2JS);
+        game.stage.backgroundColor = '#0072BC';
+
+        bmd = game.add.bitmapData(game.width, game.height);
+
+        fov = game.add.sprite(0, 0);
+        game.physics.p2.enable(fov, true);
+        fov.body.static = true;
+        fov.body.clearShapes();
+        sensorShape = fov.body.addPolygon({}, [[game.width/2, game.height], [200, game.height/2], [game.width - 200, game.height/2]])
+        fov.body.data.shapes[0].sensor = true;
+
+        renderable = game.add.group();
+
+        function onBeginContact(body, shape1, shape2) {
+            console.log(body.sprite.x);
+            console.log(body.sprite.y);
+            if (pl && pr) {
+                fovWidth = pr.x - pl.x;
+                fovX = body.sprite.x - pl.x;
+                renderedX = game.width * fovX / fovWidth;
+
+                if (typeof(shipP) === "undefined") {
+                    shipP = game.add.sprite(0, 20, 'ocean');
+                }
+            }
+        }
+        fov.body.onBeginContact.add(onBeginContact, this);
+
+        fov.lines = [
+            new Phaser.Line(game.width/2, game.height, 200, game.height/2),
+            new Phaser.Line(game.width/2, game.height, game.width - 200, game.height/2),
+        ];
+
+        // create a new bitmap data object
+        ship = game.add.sprite(180, game.height/2, 'ocean');
+
+        game.physics.p2.enable(ship);
+        ship.body.damping = 0.8;
+
+        shipX = new Phaser.Line(0, 0, game.width, 0);
+        shipX.centerOn(ship.x, ship.y);
+
+        cursors = game.input.keyboard.createCursorKeys();
+    }
+
+	function update() {
+
+        if (cursors.left.isDown)
+        {
+            ship.body.moveLeft(100);
+        }
+        else if (cursors.right.isDown)
+        {
+            ship.body.moveRight(100);
+        }
+        else {
+            ship.body.setZeroRotation();
+        }
+
+        if (cursors.up.isDown)
+        {
+            ship.body.moveForward(100);
+        }
+        else if (cursors.down.isDown)
+        {
+            ship.body.moveBackward(100);
+        }
+        shipX.centerOn(ship.x, ship.y);
+
+        pl = fov.lines[0].intersects(shipX, true);
+        pr = fov.lines[1].intersects(shipX, true);
+        if (pl && pr) {
+            fovWidth = pr.x - pl.x;
+            fovX = ship.x - pl.x;
+            renderedX = game.width * fovX / fovWidth;
+
+            if (typeof(shipP) === "undefined") {
+                shipP = game.add.sprite(0, 20, 'ocean');
+            }
+            if (typeof(shipP) !== "undefined") {
+                shipP.x = renderedX;
+                scale = (350 - Phaser.Point.distance(fov.lines[0].start, ship)) * 0.02;
+                shipP.scale.setTo(scale, scale);
+            }
+        }
+    }
+
+    function render() {
+        fov.lines.forEach(function(edge) {
+            game.debug.geom(edge, 'rgb(255,0,0)');
+        });
+
+        game.debug.text(renderedX, 20, 20);
+        game.debug.text(scale, 20, 40);
+
+        game.debug.geom(shipX, 'rgb(0,255,0)');
+
+    }
+
+ })();
+</script>
+
+</body>
+</html>
