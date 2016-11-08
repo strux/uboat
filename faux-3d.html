@@ -25,12 +25,18 @@
 
     function preload() {
         game.load.image('ocean', 'assets/images/ocean-tile.png', 32, 32);
+        game.load.image('mask', 'assets/images/periscope-mask.png', 32, 32);
+        game.load.image('sky', 'assets/images/sky.png', 32, 32);
+        game.load.image('ship', 'assets/images/ship.png', 32, 32);
     }
 
     function create() {
 
         renderedX = 0;
         scale = 0;
+
+        periscopeMask = game.add.sprite(0, 0, 'mask');
+        sky = game.add.sprite(0, 0, 'sky');
 
         game.physics.startSystem(Phaser.Physics.P2JS);
         game.stage.backgroundColor = '#0072BC';
@@ -55,7 +61,7 @@
                 renderedX = game.width * fovX / fovWidth;
 
                 if (typeof(shipP) === "undefined") {
-                    shipP = game.add.sprite(0, 20, 'ocean');
+                    shipP = game.add.sprite(0, 20, 'ship');
                 }
             }
         }
@@ -70,7 +76,7 @@
         ship = game.add.sprite(180, game.height/2, 'ocean');
 
         game.physics.p2.enable(ship);
-        ship.body.damping = 0.8;
+        ship.body.damping = 0.99;
 
         shipX = new Phaser.Line(0, 0, game.width, 0);
         shipX.centerOn(ship.x, ship.y);
@@ -82,23 +88,19 @@
 
         if (cursors.left.isDown)
         {
-            ship.body.moveLeft(100);
+            ship.body.moveLeft(20);
         }
         else if (cursors.right.isDown)
         {
-            ship.body.moveRight(100);
+            ship.body.moveRight(20);
         }
-        else {
-            ship.body.setZeroRotation();
-        }
-
         if (cursors.up.isDown)
         {
-            ship.body.moveForward(100);
+            ship.body.moveForward(20);
         }
         else if (cursors.down.isDown)
         {
-            ship.body.moveBackward(100);
+            ship.body.moveBackward(20);
         }
         shipX.centerOn(ship.x, ship.y);
 
@@ -110,14 +112,18 @@
             renderedX = game.width * fovX / fovWidth;
 
             if (typeof(shipP) === "undefined") {
-                shipP = game.add.sprite(0, 20, 'ocean');
+                shipP = game.add.sprite(0, 155, 'ship');
+                shipP.smoothed = false;
             }
             if (typeof(shipP) !== "undefined") {
                 shipP.x = renderedX;
-                scale = (350 - Phaser.Point.distance(fov.lines[0].start, ship)) * 0.02;
+                // scale = Math.pow((350 - Phaser.Point.distance(fov.lines[0].start, ship)) * 0.02, 2) / 4;
+                scale = (350 - Phaser.Point.distance(fov.lines[0].start, ship)) * 0.03;
                 shipP.scale.setTo(scale, scale);
             }
         }
+
+        game.world.bringToTop(periscopeMask);
     }
 
     function render() {
@@ -125,8 +131,10 @@
             game.debug.geom(edge, 'rgb(255,0,0)');
         });
 
+        /*
         game.debug.text(renderedX, 20, 20);
         game.debug.text(scale, 20, 40);
+        */
 
         game.debug.geom(shipX, 'rgb(0,255,0)');
 
