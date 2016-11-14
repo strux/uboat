@@ -25,12 +25,13 @@
         viewRangeMeters: 5000,
     };
 
-    FOV = function (game, x, y) {
+    FOV = function (game, x, y, ctx3D) {
+
+        this.ctx3D = ctx3D;
 
         this.radians = Phaser.Math.degToRad(40);
 
         Phaser.Sprite.call(this, game, x, y);
-        this.renderableSprites = game.add.group();
 
         this.leftEdge = new Phaser.Line(game.width/2, game.height, 200, game.height/2);
         this.rightEdge = new Phaser.Line(game.width/2, game.height, game.width - 200, game.height/2);
@@ -44,18 +45,21 @@
         this.body.onBeginContact.add(function(body, shape1, shape2) {
             console.log(body.sprite, ' entering FOV');
 
-            var vessel = game.add.sprite(0, 155, 'ship');
-            vessel.smoothed = false;
-            vessel.anchor.setTo(0.5, 1);
-            body.sprite.fovSprite = vessel;
-            this.renderableSprites.add(body.sprite);
+            var sprite2D = body.sprite;
+
+            var sprite3D = this.ctx3D.create(0, 155, 'ship');
+            sprite3D.smoothed = false;
+            sprite3D.anchor.setTo(0.5, 1);
+            sprite2D.ref3D = sprite3D;
+            sprite3D.ref2D = sprite2D;
         }, this);
 
         this.body.onEndContact.add(function(body, shape1, shape2) {
             console.log(body.sprite, ' exiting FOV');
 
-            body.sprite.fovSprite.destroy();
-            this.renderableSprites.remove(body.sprite);
+            var sprite2D = body.sprite;
+            // this.ctx3D.remove(body.sprite.ref3D);
+            sprite2D.ref3D.destroy();
         }, this);
 
         game.add.existing(this);
@@ -66,20 +70,19 @@
 
     FOV.prototype.update = function() {
 
-        this.renderableSprites.forEach(function(sprite) {
+        this.ctx3D.children.forEach(function(sprite) {
 
-            var pl = this.leftEdge.intersects(sprite.fovOffsetGuide, true),
-                pr = this.rightEdge.intersects(sprite.fovOffsetGuide, true),
+            var pl = this.leftEdge.intersects(sprite.ref2D.fovOffsetGuide, true),
+                pr = this.rightEdge.intersects(sprite.ref2D.fovOffsetGuide, true),
                 fovWidth = pr.x - pl.x,
-                fovX = sprite.x - pl.x,
-                distance = Phaser.Point.distance(this.leftEdge.start, sprite),
+                fovX = sprite.ref2D.x - pl.x,
+                distance = Phaser.Point.distance(this.leftEdge.start, sprite.ref2D),
                 scale = (Math.pow((distance)/320, -1.6)) - 1,
                 renderedX = game.width * fovX / fovWidth;
 
-            sprite.fovSprite.x = renderedX;
-            // sprite.fovSprite.y = 320 - distance / 2;
-            sprite.fovSprite.y = 165 + (Math.pow((distance)/320*1.6, -2))
-            sprite.fovSprite.scale.setTo(scale, scale);
+            sprite.x = renderedX;
+            sprite.y = 165 + (Math.pow((distance)/320*1.6, -2))
+            sprite.scale.setTo(scale, scale);
         }, this);
     };
 
@@ -118,39 +121,36 @@
     function create() {
 
         game.physics.startSystem(Phaser.Physics.P2JS);
-
-
-        nfov = new FOV(game, 0, 0);
-        test = new Vessel(game, 500, 500);
-
-        renderedX = 0;
-        scale = 0;
-
-        periscopeMask = game.add.sprite(0, 0, 'mask');
-        sky = game.add.sprite(0, 0, 'sky');
+        cursors = game.input.keyboard.createCursorKeys();
 
         game.stage.backgroundColor = '#0072BC';
+        sky = game.add.sprite(0, 0, 'sky');
+        ctx2D = game.add.group();
+        ctx3D = game.add.group();
+        periscopeMask = game.add.sprite(0, 0, 'mask');
 
-        cursors = game.input.keyboard.createCursorKeys();
+        fov = new FOV(game, 0, 0, ctx3D);
+        vessel = new Vessel(game, 500, 500);
+
     }
 
 	function update() {
 
         if (cursors.left.isDown)
         {
-            test.body.moveLeft(50);
+            vessel.body.moveLeft(50);
         }
         if (cursors.right.isDown)
         {
-            test.body.moveRight(50);
+            vessel.body.moveRight(50);
         }
         if (cursors.up.isDown)
         {
-            test.body.moveForward(50);
+            vessel.body.moveForward(50);
         }
         if (cursors.down.isDown)
         {
-            test.body.moveBackward(50);
+            vessel.body.moveBackward(50);
         }
 
         game.world.bringToTop(periscopeMask);
@@ -161,9 +161,9 @@
         game.debug.text(scale, 20, 40);
         */
 
-        game.debug.geom(test.fovOffsetGuide, 'rgb(0,255,0)');
-        game.debug.geom(nfov.leftEdge, 'rgb(255,0,0)');
-        game.debug.geom(nfov.rightEdge, 'rgb(255,0,0)');
+        game.debug.geom(vessel.fovOffsetGuide, 'rgb(0,255,0)');
+        game.debug.geom(fov.leftEdge, 'rgb(255,0,0)');
+        game.debug.geom(fov.rightEdge, 'rgb(255,0,0)');
     }
 
  })();
