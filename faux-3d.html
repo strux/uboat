@@ -21,6 +21,11 @@
 
 (function () {
 
+    var Uboat = {
+
+        PixelsPerMeter: 0.10,
+    }
+
     CONSTANTS = {
         viewRangeMeters: 5000,
     };
@@ -43,7 +48,6 @@
         this.body.data.shapes[0].sensor = true;
 
         this.body.onBeginContact.add(function(body, shape1, shape2) {
-            console.log(body.sprite, ' entering FOV');
 
             var sprite2D = body.sprite;
 
@@ -55,7 +59,6 @@
         }, this);
 
         this.body.onEndContact.add(function(body, shape1, shape2) {
-            console.log(body.sprite, ' exiting FOV');
 
             var sprite2D = body.sprite;
             // this.ctx3D.remove(body.sprite.ref3D);
@@ -81,7 +84,7 @@
                 renderedX = game.width * fovX / fovWidth;
 
             sprite.x = renderedX;
-            sprite.y = 165 + (Math.pow((distance)/320*1.6, -2))
+            sprite.y = 160 + (Math.pow((distance)/320*1.6, -2))
             sprite.scale.setTo(scale, scale);
         }, this);
     };

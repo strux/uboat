@@ -1,28 +1,28 @@
 
-BasicGame.MainMenu = function (game) {
+Uboat.MainMenu = function (game) {
 
-	this.music = null;
-	this.playButton = null;
+    this.music = null;
+    this.playButton = null;
 
 };
 
-BasicGame.MainMenu.prototype = {
+Uboat.MainMenu.prototype = {
 
-	create: function () {
+    create: function () {
 
         this.startGame();
-	},
+    },
 
-	update: function () {
+    update: function () {
 
-		//	Do some nice funky main menu effect here
+        //  Do some nice funky main menu effect here
 
-	},
+    },
 
-	startGame: function (pointer) {
+    startGame: function (pointer) {
 
-		this.state.start('Game');
+        this.state.start('Game');
 
-	}
+    }
 
 };

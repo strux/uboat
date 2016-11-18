@@ -1,136 +1,164 @@
+FOV = function (game, x, y, ctx3D) {
 
-BasicGame.Game = function (game) {
+    this.game = game;
+    this.ctx3D = ctx3D;
 
-	//	When a State is added to Phaser it automatically has the following properties set on it, even if they already exist:
+    this.radians = Phaser.Math.degToRad(40);
 
-    this.game;		//	a reference to the currently running game
-    this.add;		//	used to add sprites, text, groups, etc
-    this.camera;	//	a reference to the game camera
-    this.cache;		//	the game cache
-    this.input;		//	the global input manager (you can access this.input.keyboard, this.input.mouse, as well from it)
-    this.load;		//	for preloading assets
-    this.math;		//	lots of useful common math operations
-    this.sound;		//	the sound manager - add a sound, play one, set-up markers, etc
-    this.stage;		//	the game stage
-    this.time;		//	the clock
-    this.tweens;	//	the tween manager
-    this.world;		//	the game world
-    this.particles;	//	the particle manager
-    this.physics;	//	the physics manager
-    this.rnd;		//	the repeatable random number generator
+    Phaser.Sprite.call(this, this.game, x, y);
 
-    //	You can use any of these from any function within this State.
-    //	But do consider them as being 'reserved words', i.e. don't create a property for your own game called "world" or you'll over-write the world reference.
+    this.leftEdge = new Phaser.Line(this.game.width/2, this.game.height, 200, this.game.height/2);
+    this.rightEdge = new Phaser.Line(this.game.width/2, this.game.height, this.game.width - 200, this.game.height/2);
+
+    this.game.physics.p2.enable(this, true);
+    this.body.static = true;
+    this.body.clearShapes();
+    this.body.addPolygon({}, [[this.game.width/2, this.game.height], [200, this.game.height/2], [this.game.width - 200, this.game.height/2]]);
+    this.body.data.shapes[0].sensor = true;
+
+    this.body.onBeginContact.add(function(body, shape1, shape2) {
+
+        var sprite2D = body.sprite;
+
+        var sprite3D = this.ctx3D.create(0, 155, 'ship');
+        sprite3D.smoothed = false;
+        sprite3D.anchor.setTo(0.5, 1);
+        sprite2D.ref3D = sprite3D;
+        sprite3D.ref2D = sprite2D;
+    }, this);
+
+    this.body.onEndContact.add(function(body, shape1, shape2) {
+
+        var sprite2D = body.sprite;
+        // this.ctx3D.remove(body.sprite.ref3D);
+        sprite2D.ref3D.destroy();
+    }, this);
+
+    this.game.add.existing(this);
+};
+
+FOV.prototype = Object.create(Phaser.Sprite.prototype);
+FOV.prototype.constructor = FOV;
+
+FOV.prototype.update = function() {
+
+    this.ctx3D.children.forEach(function(sprite) {
+
+        var pl = this.leftEdge.intersects(sprite.ref2D.fovOffsetGuide, true),
+            pr = this.rightEdge.intersects(sprite.ref2D.fovOffsetGuide, true),
+            fovWidth = pr.x - pl.x,
+            fovX = sprite.ref2D.x - pl.x,
+            distance = Phaser.Point.distance(this.leftEdge.start, sprite.ref2D),
+            scale = (Math.pow((distance)/320, -1.6)) - 1,
+            renderedX = this.game.width * fovX / fovWidth;
+
+        sprite.x = renderedX;
+        sprite.y = 160 + (Math.pow((distance)/320*1.6, -2))
+        sprite.scale.setTo(scale, scale);
+    }, this);
+};
+
+
+Vessel = function (game, x, y) {
+
+    this.game = game;
+
+    Phaser.Sprite.call(this, this.game, x, y, 'ocean');
+
+    this.game.physics.p2.enable(this);
+    this.body.damping = 0.999999;
+
+    this.fovOffsetGuide = new Phaser.Line(0, 0, this.game.width, 0);
+
+    this.game.add.existing(this);
+};
+
+Vessel.prototype = Object.create(Phaser.Sprite.prototype);
+Vessel.prototype.constructor = Vessel;
+
+Vessel.prototype.update = function() {
+
+    this.fovOffsetGuide.centerOn(this.x, this.y);
+};
+
+
+Uboat.Game = function (game) {
+
+    //  When a State is added to Phaser it automatically has the following properties set on it, even if they already exist:
+
+    this.game;      //  a reference to the currently running game
+    this.add;       //  used to add sprites, text, groups, etc
+    this.camera;    //  a reference to the game camera
+    this.cache;     //  the game cache
+    this.input;     //  the global input manager (you can access this.input.keyboard, this.input.mouse, as well from it)
+    this.load;      //  for preloading assets
+    this.math;      //  lots of useful common math operations
+    this.sound;     //  the sound manager - add a sound, play one, set-up markers, etc
+    this.stage;     //  the game stage
+    this.time;      //  the clock
+    this.tweens;    //  the tween manager
+    this.world;     //  the game world
+    this.particles; //  the particle manager
+    this.physics;   //  the physics manager
+    this.rnd;       //  the repeatable random number generator
+
+    //  You can use any of these from any function within this State.
+    //  But do consider them as being 'reserved words', i.e. don't create a property for your own game called "world" or you'll over-write the world reference.
 
 };
 
-BasicGame.Game.prototype = {
+Uboat.Game.prototype = {
     preload: function () {
-        this.load.tilemap('level1', 'assets/tilemaps/map-large.json', null, Phaser.Tilemap.TILED_JSON);
-        this.load.image('gameTiles', 'assets/images/map-large.png');
-        this.load.spritesheet('player', 'assets/images/spritesheet_small.png', 8, 32, 2);
+        this.game.load.image('ocean', 'assets/images/ocean-tile.png', 32, 32);
+        this.game.load.image('mask', 'assets/images/periscope-mask.png', 32, 32);
+        this.game.load.image('sky', 'assets/images/sky.png', 32, 32);
+        this.game.load.image('ship', 'assets/images/ship.png', 32, 32);
     },
 
-	create: function () {
+    create: function () {
 
         this.game.physics.startSystem(Phaser.Physics.P2JS);
+        cursors = this.game.input.keyboard.createCursorKeys();
 
-        /* 
-        this.game.scale.scaleMode = Phaser.ScaleManager.USER_SCALE;
-        this.game.scale.setUserScale(4, 4);
-        */
+        this.game.stage.backgroundColor = '#0072BC';
+        sky = this.game.add.sprite(0, 0, 'sky');
+        ctx2D = this.game.add.group();
+        ctx3D = this.game.add.group();
+        ctx3D = this.game.add.group();
+        periscopeMask = this.game.add.sprite(0, 0, 'mask');
 
-        // enable crisp rendering
-        this.game.renderer.renderSession.roundPixels = true;
-        Phaser.Canvas.setImageRenderingCrisp(this.game.canvas);
+        fov = new FOV(this.game, 0, 0, ctx3D);
+        vessel = new Vessel(this.game, 500, 500);
+    },
 
-        this.map = this.game.add.tilemap('level1');
+    update: function () {
 
-        // the first parameter is the tileset name as specified in Tiled, the second is the key to the asset
-        this.map.addTilesetImage('map-large', 'gameTiles');
+        if (cursors.left.isDown)
+        {
+            vessel.body.moveLeft(50);
+        }
+        if (cursors.right.isDown)
+        {
+            vessel.body.moveRight(50);
+        }
+        if (cursors.up.isDown)
+        {
+            vessel.body.moveForward(50);
+        }
+        if (cursors.down.isDown)
+        {
+            vessel.body.moveBackward(50);
+        }
+    },
 
-        // create layer
-        this.backgroundLayer = this.map.createLayer('Tile Layer 1');
-        this.backgroundLayer.resizeWorld();
-        // this.landMasses = this.game.physics.p2.convertCollisionObjects(this.map, "Object Layer 1", true);
+    render: function() {
 
-
-        this.player = this.game.add.sprite(this.game.world.centerX, this.game.world.height - 100, 'player');
-        this.player.frame = 0;
-        // this.player.scale.setTo(4,4);
-        this.player.anchor.setTo(0.5);
-        this.player.smoothed = false;
-        this.player.animations.add('dive', [1,2], 10, false);
-
-/*
-        this.backgroundLayer.anchor.setTo(0.5, 0.5);
-        this.backgroundLayer.fixedToCamera = false;
-        this.backgroundLayer.scrollFactorX = 0;
-        this.backgroundLayer.scrollFactorY = 0;
-        this.backgroundLayer.x = this.player.x;
-        this.backgroundLayer.y = this.player.y;
-*/
-
-        this.game.physics.p2.enable(this.player);
-        this.player.gear = 0;
-
-        this.game.camera.follow(this.player); 
-
-        // this.game.physics.p2.setBoundsToWorld(true, true, true, true, false);
-
-        this.cursors = this.game.input.keyboard.createCursorKeys();
-
-        var player = this.player;
-        this.game.input.keyboard.onDownCallback = function(event) {
-            console.log(event);
-            if (event.key === 'ArrowUp') {
-                if (player.gear < 5) {
-                    player.gear += 1;
-                }
-            }
-            if (event.key === 'ArrowDown') {
-                if (player.gear > -5) {
-                    player.gear -= 1;
-                }
-            }
-            if (event.code === 'KeyD') {
-                player.frame = 1 - player.frame;
-            }
-            console.log("Current gear: ", player.gear);
-        };
-	},
-
-	update: function () {
-
-        var speed = Math.abs(this.player.gear * 10),
-            turnSpeed = this.player.gear * 2;
-
-
-            if (this.cursors.left.isDown)
-            {
-                // this.player.body.rotateLeft(turnSpeed);
-                this.backgroundLayer.rotation += 0.01;
-            }
-            else if (this.cursors.right.isDown)
-            {
-                // this.player.body.rotateRight(turnSpeed);
-                this.backgroundLayer.rotation -= 0.01;
-            }
-            else
-            {
-                this.player.body.setZeroRotation();
-            }
-
-	},
-
-	quitGame: function (pointer) {
-
-		//	Here you should destroy anything you no longer need.
-		//	Stop music, delete sprites, purge caches, free resources, all that good stuff.
-
-		//	Then let's go back to the main menu.
-		this.state.start('MainMenu');
-
-	}
+        this.game.debug.geom(vessel.fovOffsetGuide, 'rgb(0,255,0)');
+        this.game.debug.geom(fov.leftEdge, 'rgb(255,0,0)');
+        this.game.debug.geom(fov.rightEdge, 'rgb(255,0,0)');
+        ctx3D.children.forEach(function(sprite) {
+            this.game.debug.spriteInfo(sprite, 32, 32);
+        }, this);
+    }
 
 };
