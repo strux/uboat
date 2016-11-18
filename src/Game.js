@@ -118,45 +118,44 @@ Uboat.Game.prototype = {
     create: function () {
 
         this.game.physics.startSystem(Phaser.Physics.P2JS);
-        cursors = this.game.input.keyboard.createCursorKeys();
+        this.cursors = this.game.input.keyboard.createCursorKeys();
 
         this.game.stage.backgroundColor = '#0072BC';
-        sky = this.game.add.sprite(0, 0, 'sky');
-        ctx2D = this.game.add.group();
-        ctx3D = this.game.add.group();
-        ctx3D = this.game.add.group();
-        periscopeMask = this.game.add.sprite(0, 0, 'mask');
+        this.sky = this.game.add.sprite(0, 0, 'sky');
+        this.ctx2D = this.game.add.group();
+        this.ctx3D = this.game.add.group();
+        this.periscopeMask = this.game.add.sprite(0, 0, 'mask');
 
-        fov = new FOV(this.game, 0, 0, ctx3D);
-        vessel = new Vessel(this.game, 500, 500);
+        this.fov = new FOV(this.game, 0, 0, this.ctx3D);
+        this.vessel = new Vessel(this.game, 500, 500);
     },
 
     update: function () {
 
-        if (cursors.left.isDown)
+        if (this.cursors.left.isDown)
         {
-            vessel.body.moveLeft(50);
+            this.vessel.body.moveLeft(50);
         }
-        if (cursors.right.isDown)
+        if (this.cursors.right.isDown)
         {
-            vessel.body.moveRight(50);
+            this.vessel.body.moveRight(50);
         }
-        if (cursors.up.isDown)
+        if (this.cursors.up.isDown)
         {
-            vessel.body.moveForward(50);
+            this.vessel.body.moveForward(50);
         }
-        if (cursors.down.isDown)
+        if (this.cursors.down.isDown)
         {
-            vessel.body.moveBackward(50);
+            this.vessel.body.moveBackward(50);
         }
     },
 
     render: function() {
 
-        this.game.debug.geom(vessel.fovOffsetGuide, 'rgb(0,255,0)');
-        this.game.debug.geom(fov.leftEdge, 'rgb(255,0,0)');
-        this.game.debug.geom(fov.rightEdge, 'rgb(255,0,0)');
-        ctx3D.children.forEach(function(sprite) {
+        this.game.debug.geom(this.vessel.fovOffsetGuide, 'rgb(0,255,0)');
+        this.game.debug.geom(this.fov.leftEdge, 'rgb(255,0,0)');
+        this.game.debug.geom(this.fov.rightEdge, 'rgb(255,0,0)');
+        this.ctx3D.children.forEach(function(sprite) {
             this.game.debug.spriteInfo(sprite, 32, 32);
         }, this);
     }
