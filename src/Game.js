@@ -72,9 +72,11 @@ Uboat.Game.prototype = {
         this.game.debug.geom(this.vessel.fovOffsetGuide, 'rgb(0,255,0)');
         this.game.debug.geom(this.fov.leftEdge, 'rgb(255,0,0)');
         this.game.debug.geom(this.fov.rightEdge, 'rgb(255,0,0)');
+        /*
         this.ctx3D.children.forEach(function(sprite) {
             this.game.debug.spriteInfo(sprite, 32, 32);
         }, this);
+        */
     }
 
 };
