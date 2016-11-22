@@ -44,7 +44,8 @@ Uboat.Game.prototype = {
         this.periscopeMask = this.game.add.sprite(0, 0, 'mask');
 
         this.fov = new FOV(this.game, 0, 0, this.ctx3D);
-        this.vessel = new Vessel(this.game, 500, 500);
+        this.vessel = new Vessel(this.game, 500, 500, Uboat.Catalog.typeIXB);
+        this.vessel._fuelConsumption(0.55, 1200 * 60 * 60);
     },
 
     update: function () {

@@ -1,13 +1,12 @@
 
 Uboat = {
 
-    /* Here we've just got some global level vars that persist regardless of State swaps */
+    Constants: {
+        metersPerPixel: 10,
+        metersPerKnot: 1852,
+        gramsPerTon: 907185,
+        secondsPerHour: 60 * 60,
+    },
+
     score: 0,
-
-    /* If the music in your game needs to play through-out a few State swaps, then you could reference it here */
-    music: null,
-
-    /* Your game can check Uboat.orientated in internal loops to know if it should pause or not */
-    orientated: false
-
 };
