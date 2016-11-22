@@ -6,6 +6,12 @@ Uboat.Catalog = function() {
     this.gramsPerTon = 907185;
     this.secondsPerHour = 60 * 60;
 
+    this.dieselFuelEconomy = function(kwPercentage) {
+        // Function to translate throttle positions into fuel economy percentages
+        // http://fooplot.com/#W3sidHlwZSI6MCwiZXEiOiJ4XjIrMC4xNSIsImNvbG9yIjoiIzE3OTk0RiJ9LHsidHlwZSI6MCwiZXEiOiIteCsxIiwiY29sb3IiOiIjQ0NDQ0NDIn0seyJ0eXBlIjoxMDAwLCJ3aW5kb3ciOlsiMCIsIjEiLCIwIiwiMSJdLCJncmlkIjpbIiIsIi4wNSJdLCJzaXplIjpbNTAwLDUwMF19XQ--
+        return (Math.pow(kwPercentage, 2) + 0.15)
+    }
+
     return {
 
         typeIXB: {
@@ -56,10 +62,12 @@ Uboat.Catalog = function() {
                         currentKw = maxKw * (Math.pow(kwPercentage, 2) + 0.15),
                         fuelGPerKw = 0.011964581175184162, //0.008948720156,
                         fuelCapacity = 149685525;
+                    /*
                     console.log('fuelCapacity ', fuelCapacity);
                     console.log('seconds ', seconds);
                     console.log('currentKw ', currentKw);
                     console.log('fuel per kws ', fuelCapacity / seconds / currentKw / 2);
+                    */
 
                     return fuelGPerKw  * currentKw * seconds;
                 }
